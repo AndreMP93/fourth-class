@@ -1,18 +1,15 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+//Imports do vue
 import Vue from 'vue'
-import App from './App'
-import Notifications from 'vue-notification'
+import App from './App.vue'
 
-import 'bulma/css/bulma.css'
+//Config de console
 
 Vue.config.productionTip = false
 
-Vue.use(Notifications)
-
-/* eslint-disable no-new */
+/*
+Declaracao da instancia do vue
+definicao do render e ponto de "montagem" 
+*/
 new Vue({
-  el: '#app',
-  components: { App },
-  template: '<App/>'
-})
+  render: h => h(App),
+}).$mount('#app')
