@@ -1,144 +1,113 @@
 <template>
   <div id="app">
-    <section class="hero is-primary">
-      <div class="hero-body">
-        <div class="container">
-          <h1 class="title">
-            LABES Training
-          </h1>
-          <h2 class="subtitle">
-            ToDo App
-          </h2>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <form class="field is-grouped" @submit.prevent="addTodo()">
-          <div class="field has-addons" style="margin-right: 10px">
-            <p class="control">
-              <button
-                class="button"
-                :class="{ 'is-primary': filter === 'all' }"
-                @click="setFilter('all')"
-              >
-                <span>All</span>
-              </button>
-            </p>
-
-            <p class="control">
-              <button
-                class="button"
-                :class="{ 'is-primary': filter === 'active' }"
-                @click="setFilter('active')"
-              >
-                <span>Active</span>
-              </button>
-            </p>
-
-            <p class="control">
-              <button
-                class="button"
-                :class="{ 'is-primary': filter === 'done' }"
-                @click="setFilter('done')"
-              >
-                <span>Done</span>
-              </button>
-            </p>
+    <h1 class="title">
+      LABES Training
+    </h1>
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <button 
+        class="button"
+        @click="swapCondition()">
+          <div v-if='condition'>
+          Esconder Post
           </div>
-
-          <p class="control is-expanded">
-            <input class="input" type="text" placeholder="ToDo title" v-model="newTitle">
-          </p>
-
-          <p class="control">
-            <button type="submit" class="button is-info">
-              Add
-            </button>
-          </p>
-        </form>
-
-        <article
-          v-for="(todo, key) in filteredTodos"
-          :key="key"
-          class="media has-background-light"
-          style="padding: 15px"
-        >
-          <div class="media-left">
-            <label class="checkbox">
-              <input
-                type="checkbox"
-                v-model="todo.completed"
-                @click="updateTodo(todo)"
-              >
-            </label>
+          <div v-if='! condition'>
+          Exibir Post
           </div>
+        </button>
 
-          <div class="media-content">
-            <div class="content">
-              <p>
-                <strong>#{{ todo.id }}</strong>
-                {{ todo.title }}
-              </p>
+        <div class="columns"
+        v-if='condition' >
+          
+          <div class="column"
+          v-for="(posts, i) in postsArrey"
+          :key="i">
+            
+            <div class="card">
+              <h2>{{posts.title}}</h2>             
+              <div class="card-content">
+                <div class="media">
+                  <div class="media-left">
+                    <figure class="image is-48x48">
+                    <img
+                    src="https://bulma.io/images/placeholders/96x96.png"
+                    alt="Placeholder image"
+                    />
+                    </figure>
+                  </div>
+                  <div class="media-content">
+                    <p class="title is-4 has-text-black">John Smith</p>
+                    <p class="subtitle is-6 has-text-black">@johnsmith</p>
+                  </div>
+                </div>
+                <div class="content">
+                  <p>{{posts.body}}</p>
+                
+                <br/>
+                <button
+                @click="deletePost(posts)"
+                class="delete"
+                >
+                  Remover Post
+                </button>
+                <br/>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="media-right">
-            <button
-              @click="deleteTodo(todo)"
-              class="delete"
-            ></button>
-          </div>
-        </article>
+        <div>
+          <br/>
+          <b>Titulo </b>
+            <input type="text" v-model="newPost.title">
+          <b> Texto </b>
+            <input type="text" v-model="newPost.body">
+          <button 
+          class="button"
+          @click="addPost()">
+            Adicionar Post
+          </button>
+        </div>
+
       </div>
-    </section>
-
-    <notifications group="all" />
+    </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
-
 export default {
-  name: 'App',
-
-  data: () => ({
-    todos: [],
-    filter: 'all',
-    newTitle: ''
-  }),
-
-  computed: {
-    filteredTodos () {
-      if (this.filter === 'all') {
-        return this.todos
-      }
-
-      return this.todos
-        .filter(todo => {
-          return this.filter === 'done' ? todo.completed : !todo.completed
-        })
-    }
+  name: 'app',
+  components: {
+    
   },
+  data:function(){
+    //As variaveis do meu compontente ficam aqui
+    return {
+      postsArrey: [],
+      condition: false,
+      newPost: {
+        title:"",
+        body:''
+      }
+    }
+    },
 
-  created () {
-    axios.get('https://jsonplaceholder.typicode.com/todos')
-      .then(res => {
-        this.todos = res.data
-      })
-      .catch(err => {
-        this.$notify({
+    created(){
+        axios.get(`https://jsonplaceholder.typicode.com/posts`)
+        .then(res =>{
+            this.postsArrey = res.data
+        }).catch(err =>{
+            this.$notify({
           group: 'all',
           type: 'error',
           title: 'Request failed!',
-          text: 'Failed to load os ToDos!'
+          text: 'Failed to load os Posts!'
+            })
         })
-      })
-  },
-
-  mounted () {
+    },
+    mounted () {
     this.$notify({
       group: 'all',
       type: 'info',
@@ -147,69 +116,60 @@ export default {
     })
   },
 
-  methods: {
-    setFilter (type) {
-      this.filter = type
+   methods: {
+    swapCondition(){
+      if(this.condition === true){
+        this.condition = false
+      }else{
+        this.condition = true
+      }
     },
 
-    addTodo () {
-      if (!this.newTitle) {
+    addPost(){
+      if(!this.newPost.title && !this.newPost.title){
         return
       }
+      axios.post(`https://jsonplaceholder.typicode.com/posts/`,this.newPost)
+      .then(res=>{
+        this.postsArrey.push(res.data)
+        this.newPost.title = ''
+        this.newPost.body = ''
+      }).catch(err=>{
+        this.$$notify({
+          group:'all',
+          type: 'error',
+          title: 'Request failed!',
+          text: 'Failed to save a Post!'
+        })
+      })
 
-      const newTodo = {
-        title: this.newTitle,
-        completed: false
-      }
-
-      axios.post('https://jsonplaceholder.typicode.com/todos', newTodo)
-        .then(res => {
-          this.todos.unshift(res.data)
-          this.newTitle = ''
+      },
+      deletePost(post){
+      axios.delete(`https://jsonplaceholder.typicode.com/posts/${post.id}`)
+      .then(res=>{
+        this.postsArrey = this.postsArrey.filter(aux=>aux.id !== post.id)
+      })
+      .catch(err =>{
+        this.$notify({
+          group: 'all',
+          type: 'error',
+          title: 'Request failed!',
+          text: 'Failed to delete o post!'
         })
-        .catch(err => {
-          this.$notify({
-            group: 'all',
-            type: 'error',
-            title: 'Request failed!',
-            text: 'Failed to save a ToDo!'
-          })
-        })
-    },
-
-    updateTodo (todo) {
-      axios.put(`https://jsonplaceholder.typicode.com/todos/${todo.id}`, todo)
-        .then(res => {
-          const index = this.todos.indexOf(todo)
-          this.todos[index] = res.data
-        })
-        .catch(err => {
-          this.$notify({
-            group: 'all',
-            type: 'error',
-            title: 'Request failed!',
-            text: 'Failed to update a ToDo!'
-          })
-        })
-    },
-
-    deleteTodo (todo) {
-      axios.delete(`https://jsonplaceholder.typicode.com/todos/${todo.id}`)
-        .then(res => {
-          this.todos = this.todos.filter(otherTodo => otherTodo.id !== todo.id)
-        })
-        .catch(err => {
-          this.$notify({
-            group: 'all',
-            type: 'error',
-            title: 'Request failed!',
-            text: 'Failed to delete a ToDo!'
-          })
-        })
+      })
     }
   }
+
 }
 </script>
 
 <style>
+  #app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
 </style>
